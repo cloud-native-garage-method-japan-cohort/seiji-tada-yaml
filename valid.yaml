@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  annotations:
+    app.openshift.io/runtime: nodejs
+  name: seiji-tada-pipeline-from-scratch-pipeline
+spec:
+  workspaces:
+    - name: pipeline-shared-data
+      description: |
+        This workspace stores the cloned repository and is available to all steps
+  tasks:
+    - name: clone-repository
+      params:
+        - name: url
+          value: https://github.com/upslopeio/lint-markdown-files
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: pipeline-shared-data
+
+    - name: lint-markdown
+      runAfter:
+        - clone-repository
+      taskRef:
+        kind: Task
+        name: markdown-lint
+      workspaces:
+        - name: shared-workspace
+          workspace: pipeline-shared-data
+      params:
+        - name: args
+          value: ["."]
+
